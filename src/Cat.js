@@ -8,9 +8,10 @@ const Cat = () => {
   const history = useHistory();
   const [colorIdx, setColorIdx] = useState(0);
   const [delayChange, setDelayChange] = useState(5000);
-  const [statusChange, setStatusChange] = useState("418");
+  const [statusChange, setStatusChange] = useState(localStorage.getItem('statusCode') || "418");
   const [delay, setDelay] = useState("");
   const [status, setStatus] = useState("");
+  const [expiration, setExpiration] = useState("");
 
   const handleDelaySubmit = (e) => {
     e.preventDefault();
@@ -45,12 +46,30 @@ const Cat = () => {
     setStatus("");
   };
 
+  //change background color every x seconds
   useEffect(() => {
     const colorInterval = setInterval(() => {
       setColorIdx((prevIdx) => ++prevIdx % COLORS.length);
     }, delayChange);
     return () => clearInterval(colorInterval);
   }, [delayChange]);
+
+  //use storage to save statuscode with expiration date
+  useEffect(() => {
+    localStorage.setItem('statusCode', statusChange);setExpiration(new Date().getTime() + 600000);
+  }, [statusChange]);
+
+  //check expiration every x seconds
+  useEffect(() => {
+    const statusInterval = setInterval(() => {
+      if (new Date().getTime() >= expiration) {
+        localStorage.removeItem('statusCode');
+        setExpiration("");
+        setStatusChange("418");
+      }
+    }, 1000);
+    return () => clearInterval(statusInterval);
+  },[expiration]);
 
   return (
     <div
